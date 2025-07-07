@@ -56,10 +56,13 @@ public interface ModelResource {
 	 * @param id id/uuid
 	 * @param details optional comma separated list of child PO to retrieve
 	 * @param select optional comma separated list of columns to retrieve
+	 * @param showsql optional
+	 * @param showlabel optional
 	 * @return json representation of record
 	 */
 	public Response getPO(@PathParam("tableName") String tableName, @PathParam("id") String id, @QueryParam(QueryOperators.EXPAND) String details, 
-			@QueryParam(QueryOperators.SELECT) String select, @QueryParam(QueryOperators.SHOW_SQL) String showsql);
+			@QueryParam(QueryOperators.SELECT) String select, @QueryParam(QueryOperators.SHOW_SQL) String showsql,
+			@QueryParam(QueryOperators.SHOW_LABEL) String showlabel);
 
 	@Path("{tableName}/{id}/{property}")
 	@GET
@@ -79,14 +82,23 @@ public interface ModelResource {
 	/**
 	 * Get records
 	 * @param tableName
+	 * @param details optional comma separated list of child PO to retrieve
 	 * @param filter optional where clause
 	 * @param order optional order by clause
-	 * @param pageNo
+	 * @param select optional comma separated list of columns to retrieve
+	 * @param top
+	 * @param skip
+	 * @param validationRuleID
+	 * @param context
+	 * @param showsql optional
+	 * @param label optional
+	 * @param showlabel optional
 	 * @return json array of records
 	 */
 	public Response getPOs(@PathParam("tableName") String tableName, @QueryParam(QueryOperators.EXPAND) String details, @QueryParam(QueryOperators.FILTER) String filter, @QueryParam(QueryOperators.ORDERBY) String order, 
 			@QueryParam(QueryOperators.SELECT) String select, @QueryParam(QueryOperators.TOP) int top, @DefaultValue("0") @QueryParam(QueryOperators.SKIP) int skip,
-			@QueryParam(QueryOperators.VALRULE) String validationRuleID, @QueryParam(QueryOperators.CONTEXT) String context, @QueryParam(QueryOperators.SHOW_SQL) String showsql);
+			@QueryParam(QueryOperators.VALRULE) String validationRuleID, @QueryParam(QueryOperators.CONTEXT) String context, @QueryParam(QueryOperators.SHOW_SQL) String showsql,
+			@QueryParam(QueryOperators.LABEL) String label, @QueryParam(QueryOperators.SHOW_LABEL) String showlabel);
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -157,7 +169,7 @@ public interface ModelResource {
 	 * @param id record id/uuid
 	 * @return zip file binary stream
 	 */
-	public Response getAttachmentsAsZip(@PathParam("tableName") String tableName, @PathParam("id") String id);
+	public Response getAttachmentsAsZip(@PathParam("tableName") String tableName, @PathParam("id") String id, @QueryParam(QueryOperators.AS_JSON) String asJson);
 	
 	@Path("{tableName}/{id}/attachments/zip")
 	@POST
@@ -182,7 +194,7 @@ public interface ModelResource {
 	 * @param fileName name of an attachment item
 	 * @return binary stream of an attachment item
 	 */
-	public Response getAttachmentEntry(@PathParam("tableName") String tableName, @PathParam("id") String id, @PathParam("fileName") String fileName);
+	public Response getAttachmentEntry(@PathParam("tableName") String tableName, @PathParam("id") String id, @PathParam("fileName") String fileName, @QueryParam(QueryOperators.AS_JSON) String asJson);
 	
 	@Path("{tableName}/{id}/attachments")
 	@POST
@@ -231,4 +243,14 @@ public interface ModelResource {
 	 * @return json representation of record
 	 */
 	public Response printModelRecord(@PathParam("tableName") String tableName, @PathParam("id") String id, @QueryParam(QueryOperators.REPORTTYPE) String reportType);
+	
+	@Path("{tableName}/yaml")
+	@GET
+	@Produces("application/yaml")
+	/**
+	 * Get OpenAPI YAML schema for model
+	 * @param tableName
+	 * @return
+	 */
+	public Response getModelYAML(@PathParam("tableName") String tableName);
 }
