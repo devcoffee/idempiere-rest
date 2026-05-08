@@ -95,6 +95,9 @@ public class RequestFilter implements ContainerRequestFilter {
 			|| (   HttpMethod.POST.equals(requestContext.getMethod())
 					&& requestContext.getUriInfo().getPath().endsWith("v1/auth/logout")
 					)
+			|| (   HttpMethod.POST.equals(requestContext.getMethod())
+					&& isInboundWebhookPath(requestContext.getUriInfo().getPath())
+					)
 			) {
 			return;
 		}
@@ -234,6 +237,16 @@ public class RequestFilter implements ContainerRequestFilter {
 				throw new JWTVerificationException(errorMessage);
 		}
 		RestUtils.setSessionContextVariables(Env.getCtx());
+	}
+
+	private static boolean isInboundWebhookPath(String path) {
+		if (path == null)
+			return false;
+		String prefix = "v1/webhooks/";
+		if (!path.startsWith(prefix))
+			return false;
+		String remainder = path.substring(prefix.length());
+		return !remainder.isEmpty() && remainder.indexOf('/') < 0;
 	}
 
 }

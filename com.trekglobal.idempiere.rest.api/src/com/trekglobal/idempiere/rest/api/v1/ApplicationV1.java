@@ -57,6 +57,7 @@ import com.trekglobal.idempiere.rest.api.v1.resource.impl.TaskResourceImpl;
 import com.trekglobal.idempiere.rest.api.v1.resource.impl.UploadResourceImpl;
 import com.trekglobal.idempiere.rest.api.v1.resource.impl.ViewResourceImpl;
 import com.trekglobal.idempiere.rest.api.v1.resource.impl.WindowResourceImpl;
+import com.trekglobal.idempiere.rest.api.v1.resource.impl.WebhookInboundResourceImpl;
 import com.trekglobal.idempiere.rest.api.v1.resource.impl.WorkflowResourceImpl;
 
 /**
@@ -98,7 +99,13 @@ public class ApplicationV1 extends Application {
         classes.add(TaskResourceImpl.class);
         classes.add(UploadResourceImpl.class);
         classes.add(BatchRequestResourseImpl.class);
+<<<<<<< HEAD
         
+=======
+        classes.add(HealthResourceImpl.class);
+        classes.add(WebhookInboundResourceImpl.class);
+
+>>>>>>> 1cfa3d1 (IDEMPIERE-6610: Add outbound and inbound webhook support (Standard Webhooks) (#487))
         IServicesHolder<ResourceExtension> list = Service.locator().list(ResourceExtension.class);
         for (IServiceReferenceHolder<ResourceExtension> holder : list.getServiceReferences()) {
         	ResourceExtension service = holder.getService();
