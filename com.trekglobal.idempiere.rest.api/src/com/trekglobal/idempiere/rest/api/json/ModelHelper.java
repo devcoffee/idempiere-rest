@@ -142,14 +142,17 @@ public class ModelHelper {
 		addOrderByWhenValid(table, orderBy, query);
 
 		query.setQueryTimeout(DEFAULT_QUERY_TIMEOUT);
-		rowCount = query.count();
 		pageCount = 1;
 		if (MAX_RECORDS_SIZE > 0 && (top > MAX_RECORDS_SIZE || top <= 0))
 			top = MAX_RECORDS_SIZE;
 
-		if (top > 0 && rowCount > top) {
-			pageCount = (int)Math.ceil(rowCount / (double)top);
+		if (top > 0) {
+			rowCount = query.count();
+			if(rowCount > top) {
+				pageCount = (int)Math.ceil(rowCount / (double)top);
+			}
 		} 
+		
 		query.setPageSize(top);
 		query.setRecordstoSkip(skip);
 
@@ -157,7 +160,9 @@ public class ModelHelper {
 			query.selectColumns(includeColumns);
 		
 		sqlStatement= query.getSQL();
-		return query.list();
+		List<PO> result = query.list();
+		rowCount = result.size();
+		return result;
 	}
 	
 	private String getRequestWhereClause() {
