@@ -5592,6 +5592,330 @@
 			"response": []
 		},
 		{
+			"name": "/api/v1/batch JSONPath reference (PK chaining)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner\",\n        \"responseAlias\": \"bpartner\",\n        \"body\": {\n            \"Value\": \"CUST-BATCHREF-{{$timestamp}}\",\n            \"Name\": \"Batch Reference Test {{$isoTimestamp}}\",\n            \"IsCustomer\": \"Y\"\n        }\n    },\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner_Location\",\n        \"body\": {\n            \"C_BPartner_ID\": \"@bpartner$.id@\",\n            \"AD_Org_ID\": \"@#AD_Org_ID@\",\n            \"Name\": \"Main\",\n            \"IsBillTo\": \"Y\",\n            \"IsShipTo\": \"Y\",\n            \"C_Location_ID\": {\n                \"Address1\": \"Hlavna 1\",\n                \"City\": \"Kosice\",\n                \"Postal\": \"04001\",\n                \"C_Country_ID\": {\n                    \"lookupColumn\": \"CountryCode\",\n                    \"lookupValue\": \"SK\"\n                }\n            }\n        }\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/batch?transaction=true",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"batch"
+					],
+					"query": [
+						{
+							"key": "transaction",
+							"value": "true",
+							"description": "if true, all requests are processed in a single transaction (default is true)"
+						}
+					]
+				},
+				"description": "New sub-request in this batch references the id that the previous sub-request's response just generated, via @bpartner$.id@ - resolved against the response cached under the first sub-request's 'responseAlias': 'bpartner'. Wrapped in '@' the same way as @#AD_Org_ID@ below, iDempiere's own pre-existing Evaluator.VARIABLE_START_END_MARKER convention, so literal data containing '$' is never mistaken for a reference."
+			},
+			"response": []
+		},
+		{
+			"name": "/api/v1/batch JSONPath alias (same table twice)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner\",\n        \"responseAlias\": \"bpartner\",\n        \"body\": {\n            \"Value\": \"CUST-ALIAS-{{$timestamp}}\",\n            \"Name\": \"Batch Alias Test {{$isoTimestamp}}\",\n            \"IsCustomer\": \"Y\"\n        }\n    },\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_Location\",\n        \"responseAlias\": \"billAddr\",\n        \"body\": {\n            \"Address1\": \"Hlavna 1\",\n            \"City\": \"Kosice\",\n            \"Postal\": \"04001\",\n            \"C_Country_ID\": {\n                \"lookupColumn\": \"CountryCode\",\n                \"lookupValue\": \"SK\"\n            }\n        }\n    },\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_Location\",\n        \"responseAlias\": \"shipAddr\",\n        \"body\": {\n            \"Address1\": \"Skladova 5\",\n            \"City\": \"Presov\",\n            \"Postal\": \"08001\",\n            \"C_Country_ID\": {\n                \"lookupColumn\": \"CountryCode\",\n                \"lookupValue\": \"SK\"\n            }\n        }\n    },\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner_Location\",\n        \"body\": {\n            \"C_BPartner_ID\": \"@bpartner$.id@\",\n            \"C_Location_ID\": \"@billAddr$.id@\",\n            \"Name\": \"Billing\",\n            \"IsBillTo\": \"Y\"\n        }\n    },\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner_Location\",\n        \"body\": {\n            \"C_BPartner_ID\": \"@bpartner$.id@\",\n            \"C_Location_ID\": \"@shipAddr$.id@\",\n            \"Name\": \"Shipping\",\n            \"IsShipTo\": \"Y\"\n        }\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/batch?transaction=false",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"batch"
+					],
+					"query": [
+						{
+							"key": "transaction",
+							"value": "false",
+							"description": "if true, all requests are processed in a single transaction (default is true)"
+						}
+					]
+				},
+				"description": "C_Location is created twice in the same batch, disambiguated with a 'responseAlias' on each sub-request (billAddr / shipAddr), then each is referenced explicitly by alias (@billAddr$.id@ / @shipAddr$.id@) when creating the two C_BPartner_Location rows."
+			},
+			"response": []
+		},
+		{
+			"name": "/api/v1/batch @alias$.jsonPathExpr@ (nested field, standard JSONPath)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner\",\n        \"responseAlias\": \"bp\",\n        \"body\": {\n            \"Value\": \"CUST-JSONPATH-{{$timestamp}}\",\n            \"Name\": \"Batch JSONPath Test {{$isoTimestamp}}\",\n            \"IsCustomer\": \"Y\"\n        }\n    },\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner\",\n        \"body\": {\n            \"Value\": \"CUST-JSONPATH-2-{{$timestamp}}\",\n            \"Name\": \"@bp$.AD_Org_ID.identifier@\",\n            \"IsCustomer\": \"Y\"\n        }\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/batch?transaction=true",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"batch"
+					],
+					"query": [
+						{
+							"key": "transaction",
+							"value": "true",
+							"description": "if true, all requests are processed in a single transaction (default is true)"
+						}
+					]
+				},
+				"description": "@alias$.jsonPathExpr@ evaluates a standard JSONPath (RFC 9535) against the response cached under that 'responseAlias', wrapped in '@' the same way as @#GlobalVar@ so literal data containing '$' is never mistaken for a reference. Here 'bp' is the responseAlias of the C_BPartner created in step 1, and @bp$.AD_Org_ID.identifier@ reaches into the nested AD_Org_ID.identifier field of its response - two levels deep - so the second C_BPartner's Name ends up set to the org's name (e.g. 'HQ'). Also supports array indexing/filters, e.g. @alias$.Lines[0].C_OrderLine_ID@ or @alias$.Lines[?(@.QtyOrdered > 5)].C_OrderLine_ID@ (the inner '@' there is real JSONPath's own 'current node' filter syntax - unrelated to, and not confused with, our own outer '@...@' wrapper, since only the first and last characters of the value are checked for the wrapper). Note: references only resolve inside the request body, not inside \"path\", and the whole field value must be the reference - not a substring of a larger literal."
+			},
+			"response": []
+		},
+		{
+			"name": "/api/v1/batch @#GlobalVar@ (session context)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner\",\n        \"body\": {\n            \"Value\": \"CUST-CTXVAR-{{$timestamp}}\",\n            \"Name\": \"Batch Context Var Test {{$isoTimestamp}}\",\n            \"IsCustomer\": \"Y\",\n            \"AD_Org_ID\": \"@#AD_Org_ID@\"\n        }\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/batch?transaction=true",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"batch"
+					],
+					"query": [
+						{
+							"key": "transaction",
+							"value": "true",
+							"description": "if true, all requests are processed in a single transaction (default is true)"
+						}
+					]
+				},
+				"description": "Single sub-request resolving AD_Org_ID from the caller's session context via @#AD_Org_ID@ - iDempiere's own Evaluator.VARIABLE_START_END_MARKER convention, resolved through Env.parseContext, independent of any other sub-request."
+			},
+			"response": []
+		},
+		{
+			"name": "/api/v1/batch unresolved reference (expect 400)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_BPartner_Location\",\n        \"body\": {\n            \"C_BPartner_ID\": \"@bpartner$.id@\",\n            \"Name\": \"Should Fail\",\n            \"IsBillTo\": \"Y\"\n        }\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/batch?transaction=true",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"batch"
+					],
+					"query": [
+						{
+							"key": "transaction",
+							"value": "true",
+							"description": "if true, all requests are processed in a single transaction (default is true)"
+						}
+					]
+				},
+				"description": "No prior sub-request in this batch used responseAlias 'bpartner', so @bpartner$.id@ cannot resolve. Expect a 400 with an 'Unresolved batch reference' message, not a silent null."
+			},
+			"response": []
+		},
+		{
+			"name": "/api/v1/batch duplicate alias (expect 400)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_Location\",\n        \"responseAlias\": \"addr\",\n        \"body\": {\n            \"Address1\": \"Hlavna 1\",\n            \"City\": \"Kosice\",\n            \"Postal\": \"04001\",\n            \"C_Country_ID\": {\n                \"lookupColumn\": \"CountryCode\",\n                \"lookupValue\": \"SK\"\n            }\n        }\n    },\n    {\n        \"method\": \"POST\",\n        \"path\": \"v1/models/C_Location\",\n        \"responseAlias\": \"addr\",\n        \"body\": {\n            \"Address1\": \"Skladova 5\",\n            \"City\": \"Presov\",\n            \"Postal\": \"08001\",\n            \"C_Country_ID\": {\n                \"lookupColumn\": \"CountryCode\",\n                \"lookupValue\": \"SK\"\n            }\n        }\n    }\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{protocol}}://{{host}}:{{port}}/api/v1/batch?transaction=true",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{host}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"api",
+						"v1",
+						"batch"
+					],
+					"query": [
+						{
+							"key": "transaction",
+							"value": "true",
+							"description": "if true, all requests are processed in a single transaction (default is true)"
+						}
+					]
+				},
+				"description": "The second sub-request reuses the 'addr' responseAlias already claimed by the first. Expect a 400 with an 'Invalid batch alias' message instead of the second response silently overwriting the first's cache entry."
+			},
+			"response": []
+		},
+		{
 			"name": "api/v1/health",
 			"request": {
 				"method": "GET",
